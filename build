@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#
+# Build the hkjn/node Docker images.
+#
+set -euo pipefail
+
+DOCKER_USER="hkjn"
+DOCKER_IMAGE="node"
+ARCH="$(uname -m)"
+
+declare -A BASEIMAGES
+BASEIMAGES[x86_64]=hkjn/alpine
+BASEIMAGES[armv7l]=hkjn/armv7l-alpine
+
+BASEIMAGE=${BASEIMAGES[$ARCH]}
+BUILD_DIR="$(mktemp -d)"
+TAG="$DOCKER_USER/$DOCKER_IMAGE:$ARCH"
+
+echo "Building $TAG in $BUILD_DIR.."
+sed "s|ARG_FROM|${BASEIMAGE}|g" Dockerfile.in > $BUILD_DIR/Dockerfile
+docker build -t $TAG $BUILD_DIR
+NO_PUSH=${NO_PUSH:-""}
+if [[ "$ARCH" = "x86_64" ]]; then
+  docker tag $TAG $DOCKER_USER/$DOCKER_IMAGE:latest
+fi
+if [[ ! "$NO_PUSH" ]]; then
+  docker push $TAG
+fi
+if [[ "$ARCH" = "x86_64" ]]; then
+  docker tag $TAG $DOCKER_USER/$DOCKER_IMAGE:latest
+  if [[ "$ARCH" = "x86_64" ]]; then
+    docker push $DOCKER_USER/$DOCKER_IMAGE:latest
+  fi
+fi
+
