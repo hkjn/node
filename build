@@ -7,13 +7,13 @@ set -euo pipefail
 DOCKER_USER="hkjn"
 DOCKER_IMAGE="node"
 ARCH="$(uname -m)"
+BUILD_DIR="$(mktemp -d)"
 
 declare -A BASEIMAGES
 BASEIMAGES[x86_64]=hkjn/alpine:x86_64
 BASEIMAGES[armv7l]=hkjn/alpine:armv7l
-
 BASEIMAGE=${BASEIMAGES[$ARCH]}
-BUILD_DIR="$(mktemp -d)"
+
 TAG="$DOCKER_USER/$DOCKER_IMAGE:$ARCH"
 
 echo "Building $TAG in $BUILD_DIR.."
